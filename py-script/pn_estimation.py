@@ -18,17 +18,26 @@ f      = np.linspace(0, 1, N) * Fs
 
 
 
-f1     = 5e6
-f0     = 5e6
+f0, f1 = 9765625, 9765625
 dF     = f1 - f0
 Sr     = dF / (dt*N) / 2
-y_0    = np.exp(1j*2*np.pi*(f0 + Sr*t)*t) # k*t + b
+x      = np.exp(1j*2*np.pi*(f0 + Sr*t)*t)
+SNR_dB = -10
 
-mu, sigma = 0, 0.05
+# mu    - mean or expected value (мат ожидание)
+# sigma - standart deviation or среднеквадратическое отклонение
+# sigma^2 variance (дисперсия)
+mu, sigma = 0, 10**(-SNR_dB/20)
+n0        = np.random.normal(mu, sigma, N)
+n1        = np.random.randn(N)
 
-noise  = np.random.normal(mu, sigma, N)
+print('fft noise floor is {:2.2f} dB'.format(10*np.log10(N)))
+print('sigma is {:2.2f} dB'.format(20*np.log10(sigma)))
+print('noise Vpp is {:2.4f} ... {:2.4f}'.format(6*sigma, 8*sigma))
+print('noise Vpp is {:2.2f} dB ... {:2.2f} dB'.format(20*np.log10(6*sigma), 20*np.log10(8*sigma)))
 
-y_0   += noise
+y_0    = x + 10**(-SNR_dB/20) * n1
+#y_0    = x + n0 
 
 phi_t  = np.angle(y_0)
 p_unwr = np.unwrap(phi_t)
@@ -36,7 +45,7 @@ freq_t = np.diff(p_unwr) / dt / (2*np.pi)
 
 # FFT transform
 yF     = np.fft.fft(y_0) / N
-nF     = np.fft.fft(noise) / N
+nF     = np.fft.fft(n0) / N
 
 # plt.figure(1)
 # count, bins, ignored = plt.hist(s, 30, density=True)
@@ -44,14 +53,26 @@ nF     = np.fft.fft(noise) / N
 # plt.grid()
 
 error = np.abs(5 - np.mean(freq_t)/1e6)
-print(error)
+# print(error)
+
+plt.figure(num=3, figsize=(8,8))
+
+plt.subplot(211)
+plt.plot(np.real(n0))
+plt.grid()
+
+plt.subplot(212)
+plt.plot(np.real(x))
+plt.grid()
+
+
 
 plt.figure(num=1, figsize=(8,8))
 
 plt.suptitle('Signal processing Time - Freq Analysis')
 
 plt.subplot(221)
-plt.plot(f/1e6, 10*np.log10(np.abs(yF)), ".-b")
+plt.plot(f/1e6, 20*np.log10(np.abs(yF)), ".-b")
 plt.title("Signal + Noise Spectrum")
 plt.xlabel('Freq, MHz')
 plt.ylabel('Magnitude, dB')
@@ -73,7 +94,7 @@ plt.ylim([0, Fs/2/1e6])
 plt.grid()
 
 plt.subplot(224)
-plt.plot(f/1e6, 10*np.log10(np.abs(nF)), ".-b")
+plt.plot(f/1e6, 20*np.log10(np.abs(nF)), ".-b")
 plt.title("Noise Spectrum")
 plt.xlabel('Freq, MHz')
 plt.ylabel('Magnitude, dB')
