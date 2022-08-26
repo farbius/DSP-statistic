@@ -2,7 +2,7 @@ from numpy.random import default_rng
 import numpy as np
 import matplotlib.pyplot as plt
 
-N  = 1024
+N  = 2048
 Fs = 100e6
 
 # mu, sigma = 0, 0.05 # mean and standard deviation
@@ -22,7 +22,7 @@ f0, f1 = 9765625, 9765625
 dF     = f1 - f0
 Sr     = dF / (dt*N) / 2
 x      = np.exp(1j*2*np.pi*(f0 + Sr*t)*t)
-SNR_dB = -10
+SNR_dB = 10
 
 # mu    - mean or expected value (мат ожидание)
 # sigma - standart deviation or среднеквадратическое отклонение
@@ -117,7 +117,7 @@ plt.xlabel('Freq, MHz')
 plt.grid()
 
 plt.subplot(212)
-plt.hist(noise, 30, density=True)
+plt.hist(n0, 30, density=True)
 plt.title('Noise Histogramm')
 plt.grid()
 
